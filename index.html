@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpendSmart</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">Spend<em>Smart</em></div>
+    <div class="date-pill" id="dateBadge"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
+    <button class="tab-btn" onclick="switchTab('notebook')">📓 Notebook</button>
+  </div>
+
+  <!-- CURRENCY -->
+  <div class="currency-row">
+    <span class="currency-label">Currency</span>
+    <div id="currencyScroll" style="display:flex;gap:6px;"></div>
+  </div>
+
+  <!-- ══ DASHBOARD TAB ══ -->
+  <div class="tab-panel active" id="tab-dashboard">
+    <div class="body-grid">
+      <div class="left-panel">
+        <div class="hero-card">
+          <div class="hero-inner">
+            <div class="hero-eyebrow">Total Spent This Month</div>
+            <div class="hero-amount"><span class="sym" id="balanceCurrSymbol">₹</span><span id="totalSpent">0</span></div>
+            <div class="hero-sub" id="balanceSub">Start logging your expenses below</div>
+            <div class="hero-divider"></div>
+            <div class="hero-stats">
+              <div class="hero-stat"><div class="hs-label">This Week</div><div class="hs-val" id="weekTotal">—</div></div>
+              <div class="hero-stat"><div class="hs-label">Impulse Spends</div><div class="hs-val accent" id="impulseCount">—</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Monthly Budget</span>
+            <button class="set-budget-btn" onclick="openModal()">Set Budget</button>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="budgetBar" style="width:0%"></div></div>
+          <div class="budget-hint" id="budgetHint">No budget set — tap to set one</div>
+        </div>
+        <div class="card">
+          <div class="card-header" style="margin-bottom:12px"><span class="card-title">Payment Breakdown</span></div>
+          <div class="breakdown-grid">
+            <div class="brk-cell" style="background:var(--green-pale);border-color:rgba(22,163,74,0.15)"><div class="brk-label">Cash</div><div class="brk-val" id="brkCash" style="color:var(--green)">—</div></div>
+            <div class="brk-cell" style="background:var(--teal-pale);border-color:rgba(8,145,178,0.15)"><div class="brk-label">Card</div><div class="brk-val" id="brkCard" style="color:var(--teal)">—</div></div>
+            <div class="brk-cell" style="background:var(--purple-pale);border-color:rgba(124,58,237,0.15)"><div class="brk-label">UPI</div><div class="brk-val" id="brkUpi" style="color:var(--purple)">—</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="log-card">
+          <div class="form-title">Log a Spend</div>
+          <div class="amount-wrap">
+            <span class="amount-sym" id="inputCurrSymbol">₹</span>
+            <input class="amount-input" type="number" id="amountInput" placeholder="0" min="0">
+          </div>
+          <input class="note-input" type="text" id="noteInput" placeholder="What was it for? chai, uber, textbooks...">
+          <div class="micro-label">Category</div>
+          <div class="cats" id="cats">
+            <button class="cat-btn active" data-cat="🍕 Food">🍕 Food</button>
+            <button class="cat-btn" data-cat="🚌 Travel">🚌 Travel</button>
+            <button class="cat-btn" data-cat="🎉 Fun">🎉 Fun</button>
+            <button class="cat-btn" data-cat="📚 Study">📚 Study</button>
+            <button class="cat-btn" data-cat="🛍️ Shopping">🛍️ Shopping</button>
+            <button class="cat-btn" data-cat="💊 Health">💊 Health</button>
+            <button class="cat-btn" data-cat="📦 Other">📦 Other</button>
+          </div>
+          <div class="micro-label">Type of spend</div>
+          <div class="toggle-row" style="margin-bottom:14px">
+            <button class="toggle-btn planned active" id="plannedBtn" onclick="setSpendType('planned')">✓ Planned</button>
+            <button class="toggle-btn impulse" id="impulseBtn" onclick="setSpendType('impulse')">⚡ Impulse Buy</button>
+          </div>
+          <div class="micro-label">Paid with</div>
+          <div class="toggle-row" style="margin-bottom:16px">
+            <button class="toggle-btn cash active" id="payBtnCash" onclick="setPayMethod('cash')">💵 Cash</button>
+            <button class="toggle-btn card" id="payBtnCard" onclick="setPayMethod('card')">💳 Card</button>
+            <button class="toggle-btn upi" id="payBtnUpi" onclick="setPayMethod('upi')">📱 UPI</button>
+          </div>
+          <button class="log-btn" onclick="addExpense()">+ Log Expense</button>
+        </div>
+        <div class="list-section">
+          <div class="list-header">
+            <div class="list-title">Recent Spends</div>
+            <button type="button" class="clear-btn" onclick="clearAll()">Clear all</button>
+          </div>
+          <div id="expenseList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ANALYTICS TAB ══ -->
+  <div class="tab-panel" id="tab-analytics">
+    <div class="analytics-grid">
+      <!-- stat boxes -->
+      <div class="stat-row full" style="grid-column:1/-1">
+        <div class="stat-box"><div class="stat-box-label">Total Spent</div><div class="stat-box-val" id="an-total">—</div></div>
+        <div class="stat-box"><div class="stat-box-label">Avg per Day</div><div class="stat-box-val green" id="an-avg">—</div></div>
+        <div class="stat-box"><div class="stat-box-label">Impulse %</div><div class="stat-box-val amber" id="an-impulse-pct">—</div></div>
+        <div class="stat-box"><div class="stat-box-label">Transactions</div><div class="stat-box-val" id="an-count">—</div></div>
+      </div>
+      <!-- Spending over time -->
+      <div class="chart-card full">
+        <div class="chart-title">Spending Over Time</div>
+        <div class="chart-sub">Daily spend for the last 14 days</div>
+        <div class="chart-wrap"><canvas id="lineChart" height="90"></canvas></div>
+      </div>
+      <!-- Category donut -->
+      <div class="chart-card">
+        <div class="chart-title">By Category</div>
+        <div class="chart-sub">Where your money goes</div>
+        <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+      </div>
+      <!-- Payment bar -->
+      <div class="chart-card">
+        <div class="chart-title">Payment Method</div>
+        <div class="chart-sub">Cash vs Card vs UPI</div>
+        <div class="chart-wrap"><canvas id="payChart"></canvas></div>
+      </div>
+      <!-- Planned vs Impulse -->
+      <div class="chart-card full">
+        <div class="chart-title">Planned vs Impulse</div>
+        <div class="chart-sub">Weekly breakdown of spend type</div>
+        <div class="chart-wrap"><canvas id="barChart" height="80"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ NOTEBOOK TAB ══ -->
+  <div class="tab-panel" id="tab-notebook">
+    <div class="notebook-wrap">
+      <div class="notebook-sidebar">
+        <div class="nb-sidebar-title">📓 My Notes</div>
+        <button class="nb-new-btn" onclick="newNote()">+ New Note</button>
+        <div class="nb-list" id="nbList"></div>
+      </div>
+      <div class="notebook-editor" id="nbEditor">
+        <div class="nb-empty" id="nbEmpty">
+          <div class="nb-empty-icon">📝</div>
+          <p>Select a note or create a new one.<br>Keep track of budgets, goals, reminders.</p>
+        </div>
+        <div id="nbEditArea" style="display:none;flex-direction:column;flex:1;">
+          <div class="nb-editor-header">
+            <input class="nb-title-input" id="nbTitleInput" placeholder="Note title..." oninput="markDirty()">
+            <button class="nb-delete-btn" onclick="deleteNote()">🗑 Delete</button>
+          </div>
+          <div class="nb-divider"></div>
+          <textarea class="nb-body-input" id="nbBodyInput" placeholder="Start writing... track your goals, monthly summaries, spending reminders, anything." oninput="markDirty(); updateWordCount()"></textarea>
+          <div class="nb-footer">
+            <span class="nb-word-count" id="nbWordCount">0 words</span>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="nb-saved-hint" id="nbSavedHint">✓ Saved</span>
+              <button class="nb-save-btn" onclick="saveNote()">Save Note</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Clear all expenses?</div>
+    <div class="confirm-msg" id="confirmMsg">This will permanently delete all your expenses.</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-ok" onclick="confirmClearAll()">Delete all</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUDGET MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Monthly Budget</h2>
+    <p>How much do you have to spend this month?</p>
+    <input class="modal-input" type="number" id="budgetInput" placeholder="Enter amount">
+    <button class="modal-btn" onclick="saveBudget()">Save Budget</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
